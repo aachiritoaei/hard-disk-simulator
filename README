@@ -1,0 +1,64 @@
+Nume : Achiritoaei	
+Prenume : Alexandru-Adrian
+Grupa : 315 CC
+
+Structuri de date - Tema 1 - Simulare hardDisk
+Detalii implementare.
+1) Initializare hardDisk
+HardDisk-ul este reprezentat sub forma unei liste dublu inlantuite de liste
+circulare. Elementele unei liste circulare(adresele) sunt reprezentate sub forma
+unei structuri 'node', care retine indexul adresei, damage-ul, numele adresei
+(initial '0000') si un pointer catre urmatoarea adresa. Elementele unei liste
+dublu inlantuite(liniile) sunt reprezentate sub forma unei structuri 'line', 
+care retine indexul liniei, doi pointeri, unul catre linia precedenta si unul 
+catre linia urmatoare si adresa 0 a unei liste circulare.
+Fiecare lista circulara va avea 2^(4 + index) elemente, unde index este indexul 
+liniei.
+2) Comenzi
+readData - afiseaza numele adresei si adauga 5 damage;
+readDamage - afiseaza damage-ul adresei si adauga 2 damage;
+writeData - copiaza numele dat la adresa corespunzatoare si adauga 30 damage;
+moveOneLine - realizeaza o mutare a cursorului cu o pozitie, pe lista dublu 
+inlantuita
+moveOneAddress - realizeaza o mutare a cursorului cu o pozitie, pe lista 
+circulara
+3) Cazul 1 - coada
+Actiunile se realizeaza pe timpi. La finalul unui timp este adaugat 1 damage pe
+adresa curenta. Daca temporizatorul este 0, se citeste o noua comanda care se 
+adauga in coada. Pentru comanda curenta, daca nu a fost executata, cursorul se
+deplaseaza o pozitie pentru a putea fi executata. Daca comanda a fost 
+executata, se preia alta comanda de pe coada. In cazul in care nu avem nicio 
+comanda in coada, se asteapta introducerea uneia.
+In acest caz, toate comenzile se vor executa, deoarece comanda ::e se va afla
+la finalul cozii, fiind executata ultima.
+BONUS : 
+MultiRead - citeste de la prima adresa; adresa se incrementeaza si iar 
+se citeste; daca se ajunge la capatul liniei de adrese, se trece la urmatoarea
+linie.
+MultiWrite - In citirea initiala a comenzii, se retine intr-un camp 'data' tot
+stringul de nume de adrese care vor fi scrise. Operatiile au loc astfel : 
+se muta la adresa corespunzatoare, se alege primul nume de adresa care va fi 
+scris. Apoi, se muta la adresa urmatoare, se alege urmatorul token din sir care
+va fi scris.
+4) Cazul 2 - stiva
+Actiunile se realizeaza pe timpi. Daca temporizatorul este 0, se citeste o noua
+comanda care se lanseaza in executie. Daca inainte sa, exista o comanda care nu
+a fost executata, se adauga pe stiva de executie, urmand a fi executata 
+ulterior, daca exista timp disponibil. In cazul in care comanda s-a executat
+mai repede decat timpul alocat, se preia o alta comanda de pe stiva de executie.
+In acest caz, comenzile se vor executa doar daca timpul alocat a fost suficient
+pentru a fi realizate toate comenzile. Altfel, vor fi executate doar comenzile
+care s-au incadrat in timpul total, deoarece in momentul in care intalnim 
+comanda ::e, acesta opreste executia, chiar daca mai existau comenzi pe stiva
+de executie.
+5) Afisarea charts-urilor finale
+Se realizeaza o medie a damage-ului pe cele 4 zone. Apoi se elibereaza memoria.
+
+Probleme la implementare : 
+-lipsa initiala a caracterului "\r" ca separator la citirea comenzilor.
+
+
+
+
+
+
