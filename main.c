@@ -9,21 +9,23 @@
 
 
 int main(int argc, char *argv[]){
-	/* Se primesc ca parametri din linia de comanda fisierul de input si cel de output */
+	/* Command line paramters: input file, output file */
 	freopen(argv[1], "r", stdin);
 	freopen(argv[2], "w", stdout);
-	/* Se preiau din fisier unul dintre cazurile coada/stiva si numarul de linii al hardDisk-ului */
+	/* Choose case: stack implementation/queue implementation
+   	 * Get number of hard disk lines
+	 */
 	int type, numberOfLines;
 	scanf("%d %d", &type, &numberOfLines);
 	getchar();
-	/* Initializare hardDisk */
+	/* Initialize hard disk */
 	line *hardDisk;
 	createHard(&hardDisk, numberOfLines);
-	/* Initializare cursor la pozitia (0, 0) */
+	/* Initialize cursor at position (0, 0) */
 	struct cursor *cursor = malloc(sizeof(cursor));
 	cursor->DL = hardDisk;
 	cursor->CL = cursor->DL->circular;
-	/* Cazul coada */
+	/* Queue case */
 	if(type == 1){
 		struct command *queue = NULL;
 		struct command *currentCommand = malloc(sizeof(command));
@@ -31,7 +33,7 @@ int main(int argc, char *argv[]){
 		int waitTimer = 0;
 		char *buffer = malloc(4096 * sizeof(char));
 		while(1){
-			/* Timp de asteptare 0 => adaugam o comanda in coada */
+			/* Wait timer is 0 -> add command in queue */
 			while((waitTimer == 0) && (!feof(stdin))){
 				struct command *new = malloc(sizeof(command));
 				fgets(buffer, 4096, stdin);
@@ -40,7 +42,7 @@ int main(int argc, char *argv[]){
 				if (cuv == NULL) {
 					continue;
 				}
-				/* De tip read - "::r" / "::d" */
+				/* Read command type  - "::r" / "::d" */
 				if(strcmp(cuv, "::r") == 0 || strcmp(cuv, "::d") == 0){
 					new->type = strdup(cuv);
 					cuv = strtok(0, " \r\n\t");
@@ -49,7 +51,7 @@ int main(int argc, char *argv[]){
 					new->indexCL = atoi(cuv);
 					fgets(buffer, 64, stdin);
 					new->waitTimer = atoi(buffer);
-				/* De tip write - "::w" */
+				/* Write command type - "::w" */
 				} else if(strcmp(cuv, "::w") == 0){ 
 					new->type = strdup(cuv);
 					cuv = strtok(0, " \r\n\t");
@@ -81,7 +83,7 @@ int main(int argc, char *argv[]){
 					new->data = strdup(cuv + strlen(cuv) + 1);
 					fgets(buffer, 64, stdin);
 					new->waitTimer = atoi(buffer);
-				/* De tip end  - "::e" */
+				/* End command type  - "::e" */
 				} else if(strcmp(cuv, "::e") == 0){
 					new->type = strdup(cuv);
 				} else {
@@ -91,11 +93,11 @@ int main(int argc, char *argv[]){
 				pushQueueCommand(&queue, new);
 				waitTimer = new->waitTimer;
 			}
-			/* Comanda care nu este executata */
+			/* Command which is not executed */
 			if(currentCommand->isExecuted == 0){
-				/* Mutare cursor pe linia necesara */
+				/* Move cursor at required line */
 				if(currentCommand->indexDL != cursor->DL->index){
-					/* Mutare cursor la adresa 0, inainte de a ne muta pe linie */
+					/* Move at 0 adress, in order to change line */
 					if(cursor->CL->index != 0){
 						cursor->CL = moveOneAddress(cursor->CL);
 					}
@@ -104,10 +106,10 @@ int main(int argc, char *argv[]){
 						cursor->CL = cursor->DL->circular;
 					}
 				}
-				else{ /* Mutare cursor pe adresa necesara */
+				else{ /* Move cursor at required address */
 					if(cursor->CL->index != currentCommand->indexCL)
 						cursor->CL = moveOneAddress(cursor->CL);
-					else { /* Cursorul se afla pe pozitia buna => executa comanda */
+					else { /* Cursor is on required position -> execute command */
 						if(strcmp(currentCommand->type, "::r") == 0){
 							readData(&cursor);
 							free(currentCommand->type);
@@ -124,10 +126,7 @@ int main(int argc, char *argv[]){
 							free(currentCommand->type);
 							currentCommand->isExecuted = 1;
 						}
-						/* Multi read 
-						 * Execut comanda de read, apoi incrementez adresa
-						 * Daca se depaseste limita de adrese de pe linia curenta, se trece pe linia urmatoare
-						 */
+						/* Multi read */
 						if(strcmp(currentCommand->type, "::mr") == 0){
 							readData(&cursor);
 							currentCommand->no--;
@@ -140,11 +139,7 @@ int main(int argc, char *argv[]){
 							if(currentCommand->no == 0)
 								currentCommand->isExecuted = 1;
 						}
-						/* Multi write
-						 * In campul currentCommand->data avem retinul sirul tuturor numelor de adrese ce vor fi scrise
-						 * Selectam cate unul, folosind strtok
-						 * Incrementam adresa si repetam acest procedeu pana la intalnirea lui '.'
-						 */
+						/* Multi write */
 						if(strcmp(currentCommand->type, "::mw") == 0){
 							char *token;
 							char *aux = strdup(currentCommand->data);
@@ -170,9 +165,9 @@ int main(int argc, char *argv[]){
 				cursor->CL->damage++;
 			}
 			else{ 
-				/* Comanda a fost executata
-				 * Incarcam alta de pe coada
-				 * Daca nu exista comenzi de executat, se asteapta pe pozitia curenta
+				/* Comanda was executed
+				 * Add another one to queue
+				 * If there is no command to be executed, wait on current position
 				 */
 				if(queue != NULL){
 					currentCommand = popQueueCommand(&queue);
@@ -185,10 +180,10 @@ int main(int argc, char *argv[]){
 				}
 			}
 		}
-		/* Eliberare buffer */
+		/* Free buffer */
 		free(buffer);
 	}
-	/* Cazul stiva */
+	/* Stack */
 	if(type == 2){
 		struct command *stack = NULL;
 		struct command *currentCommand = malloc(sizeof(command));
@@ -197,8 +192,8 @@ int main(int argc, char *argv[]){
 		int waitTimer = 0;
 		char *buffer = malloc(64 * sizeof(char));
 		while(1){
-			/* Citim o comanda cand temporizatorul este 0
-			 * Daca comanda precedenta nu a fost executata, este introdusa in stiva de executie
+			/* Read command when timer is 0
+			 * If the previous command hasn't been executed, add it to execution stack
 			 */
 			while((waitTimer == 0) && (!feof(stdin))){
 				if(currentCommand->isExecuted == 0)
@@ -210,7 +205,7 @@ int main(int argc, char *argv[]){
 				if(cuv == NULL){
 					continue;
 				}
-				/* De tip read - "::r" / "::d" */
+				/* Type read - "::r" / "::d" */
 				if(strcmp(cuv, "::r") == 0 || strcmp(cuv, "::d") == 0){
 					new->type = strdup(cuv);
 					cuv = strtok(0, " \r\n\t");
@@ -219,7 +214,7 @@ int main(int argc, char *argv[]){
 					new->indexCL = atoi(cuv);
 					fgets(buffer, 64, stdin);
 					new->waitTimer = atoi(buffer);
-				/* De tip write - "::w" */
+				/* Type write - "::w" */
 				} else if(strcmp(cuv, "::w") == 0){
 					new->type = strdup(cuv);
 					cuv = strtok(0, " \r\n\t");
@@ -231,7 +226,7 @@ int main(int argc, char *argv[]){
 					fgets(buffer, 64, stdin);
 					new->waitTimer = atoi(buffer);
 				}
-				/* De tip end  - "::e" */
+				/* Type end  - "::e" */
 				else if(strcmp(cuv, "::e") == 0){
 					new->type = strdup(cuv);
 				}
@@ -241,9 +236,9 @@ int main(int argc, char *argv[]){
 			}
 			if(strcmp(currentCommand->type, "::e") == 0)
 				break;
-			/* Comanda a fost executata
-			 * Preluam alta de pe stiva de executie
-			 * In cazul in care nu exista comenzi in stiva de executie, se asteapta primirea unei comenzi
+			/* Comanda was executed
+			 * Pop another one from execution stack
+			 * If stack is empty, wait until a command is given
 			 */
 			if(currentCommand->isExecuted == 1){
 				if(stack){
@@ -256,11 +251,11 @@ int main(int argc, char *argv[]){
 					cursor->CL->damage++;
 				}
 			}
-			/* Comanda care trebuie executata */
+			/* Command to be exeuted */
 			if(currentCommand->isExecuted == 0){
-				/* Mutare cursor pe linia necesara */
+				/* Move cursor at required line */
 				if(currentCommand->indexDL != cursor->DL->index){
-					/* Mutare cursor la adresa 0, inainte de a ne muta pe linie */
+					/* Move cursor at 0 index, in order to move at a different line */
 					if(cursor->CL->index != 0){
 						cursor->CL = moveOneAddress(cursor->CL);
 					}
@@ -269,10 +264,10 @@ int main(int argc, char *argv[]){
 						cursor->CL = cursor->DL->circular;
 					}
 				}
-				else{ /* Mutare cursor pe adresa necesara */
+				else{ /* Move cursor on required address */
 					if(cursor->CL->index != currentCommand->indexCL)
 						cursor->CL = moveOneAddress(cursor->CL);
-					else { /* Cursorul se afla pe pozitia buna => executa comanda */
+					else { /* Cursor is on required position => execute command */
 						if(strcmp(currentCommand->type, "::r") == 0){
 							readData(&cursor);
 						}
@@ -290,7 +285,7 @@ int main(int argc, char *argv[]){
 			}
 		}
 		free(buffer);
-		/* Eliberare stiva */
+		/* Free stack */
 		command *temp;
 		while(stack){
 			temp = stack;
@@ -298,9 +293,9 @@ int main(int argc, char *argv[]){
 			free(temp);
 		}
 	}
-	/* Damage pe sectoare */
+	/* Sector damage */
 	endCharts(hardDisk, numberOfLines);
-	/* Eliberare memorie */
+	/* Free memory */
 	free(cursor);
 	struct line *tempLine;
 	struct node *tempAddress, *tempNext, *tempInit;

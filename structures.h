@@ -34,4 +34,5 @@ typedef struct command{
 	int no;
 	struct command *next;
 }command;
+
 #endif

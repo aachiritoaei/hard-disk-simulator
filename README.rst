@@ -56,24 +56,44 @@ INPUT AND OUTPUT EXAMPLES
 -------------------------
 
 1)
+
 - input
 
 1 5
+
 ::r
+
 20
+
 ::w
+
 1
+
 ::r
+
 100
+
 ::d
+
 1
+
 ::d
+
 1
+
 ::e
 
+
 - ouput
+
 0000
+
 AA2A
+
 58
+
 61
+
 0.20 0.19 0.19 0.75
+
+More examples in can be found in 'inputOutputExamples.pdf'.
